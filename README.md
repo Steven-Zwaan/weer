@@ -78,7 +78,9 @@ blijft staan), Dagdetail (H 64, 24 uur, cursor van buitenaf) en de mini op Locat
 `√(mm/5) × H`, droog 3 px. Slepen gebruikt Pointer Events met capture en `touch-action: none`, en rendert alleen
 bij een nieuwe index (SPEC §5).
 
-Swipen over het scherm wisselt op Vandaag van locatie en op Dagdetail van dag. Een swipe die op een grafiek begint
+Swipen over het scherm wisselt op Vandaag van locatie en op Dagdetail van dag, als een pager: de inhoud volgt je vinger,
+schuift bij loslaten weg en de volgende schuift erin (een korte veeg veert terug, aan de rand geeft hij maar een beetje
+mee). De pijltjestoetsen doen hetzelfde. Een swipe die op een grafiek begint
 (daar sleep je de cursor) of op een horizontale strip (uurstrip, dagkiezer) is van dat element en wisselt niet.
 Met een muis scrollen die strips door te slepen of met het scrollwiel (zonder scrollbalk).
 
@@ -88,6 +90,11 @@ De kaart vult het scherm tussen de bovenbalk en een sheet met de grafiek. Sleep 
 zelf) en de grafiek wordt groter, zodat licht, matig en zwaar beter uit elkaar liggen; de kaart blijft erboven zichtbaar
 en houdt je locatie in het midden. Een gebaar dat verticaal begint is van de sheet, een dat zijwaarts begint verschuift
 de cursor. Tik op het streepje bovenaan om te wisselen. De app onthoudt de laatst gekozen grootte.
+
+De radarbeelden (500 × 512 px voor heel NL/BE) worden op één canvas ter grootte van de kaart getekend, alleen het
+zichtbare stuk van het huidige beeld. Als losse beeld-overlays was elk beeld op stadszoom ruim 7.000 px breed en liep
+Safari op iOS met twee dozijn daarvan uit het geheugen ("A problem repeatedly occurred"). Het kleurfilter op de
+kaarttegels staat om dezelfde reden per tegel en niet op de hele tegellaag.
 
 ### Verversen en offline
 

@@ -4,7 +4,7 @@
  */
 import { useEffect } from 'react';
 import { useActive } from '@/app/store';
-import { useArrowKeys, useSwipe } from '@/app/hooks';
+import { useArrowKeys, useSwipePager } from '@/app/hooks';
 import { navigate, parseHash } from '@/app/router';
 import { averageWind } from '@/domain/days';
 import { describe } from '@/domain/weather';
@@ -21,13 +21,16 @@ export function DayDetail({ index }: { index: number }) {
   const count = f?.days.length ?? 0;
   const i = Math.max(0, Math.min(count - 1, index));
   const select = (d: number) => navigate({ name: 'day', index: d }, { replace: true });
-  const step = (dir: 1 | -1) => {
-    const route = parseHash(window.location.hash); // not `i`: two steps in one frame both count
-    const cur = route.name === 'day' ? Math.min(route.index, count - 1) : i;
-    if (cur + dir >= 0 && cur + dir < count) select(cur + dir);
+  // The day shown right now, from the address: two steps in one frame must both count.
+  const current = () => {
+    const route = parseHash(window.location.hash);
+    return route.name === 'day' ? Math.min(route.index, count - 1) : i;
   };
-  const swipe = useSwipe(step);
-  useArrowKeys(step);
+  const pager = useSwipePager<HTMLDivElement>(
+    (dir) => current() + dir >= 0 && current() + dir < count,
+    (dir) => select(current() + dir),
+  );
+  useArrowKeys(pager.slide);
 
   // Nothing to show (no forecast yet, or the location went away): back to Vandaag.
   useEffect(() => {
@@ -39,27 +42,29 @@ export function DayDetail({ index }: { index: number }) {
   const tz = f.timezone;
 
   return (
-    <main className="screen sub" {...swipe}>
+    <main className="screen sub swipe-area" {...pager.handlers}>
       <BackBar label={location.name} title={`${count} dagen`} />
       <DayPicker days={f.days} selected={i} tz={tz} onSelect={select} />
-      <section className="card daysum">
-        <span style={{ fontSize: 15, color: 'var(--muted)' }}>{longDate(day.date, tz)}</span>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-          <span style={{ fontSize: 44, fontWeight: 300, letterSpacing: '-0.03em' }}>{tempLabel(day.max)}</span>
-          <span style={{ fontSize: 22, fontWeight: 400, color: 'var(--muted)' }}>{tempLabel(day.min)}</span>
+      <div className="pager" ref={pager.ref}>
+        <section className="card daysum">
+          <span style={{ fontSize: 15, color: 'var(--muted)' }}>{longDate(day.date, tz)}</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+            <span style={{ fontSize: 44, fontWeight: 300, letterSpacing: '-0.03em' }}>{tempLabel(day.max)}</span>
+            <span style={{ fontSize: 22, fontWeight: 400, color: 'var(--muted)' }}>{tempLabel(day.min)}</span>
+          </div>
+          <span style={{ fontSize: 17, fontWeight: 500 }}>{describe(day.code)}</span>
+        </section>
+        <DayCharts key={day.key} day={day} tz={tz} />
+        <div className="tiles compact">
+          <Tile label="Neerslag" value={`${dec(day.precipSumMm)} mm`} sub={day.precipProb !== null ? `Kans ${Math.round(day.precipProb)}%` : undefined} />
+          <Tile label="Wind" value={`${Math.round(averageWind(day))} km/u`} sub={`${windDirection(day.windDirDeg)} · stoten ${Math.round(day.gustMaxKmh)} km/u`} />
+          <Tile label="Zon" value={day.sunrise !== null ? hhmm(day.sunrise, tz) : '–'} sub={day.sunset !== null ? `Op · onder om ${hhmm(day.sunset, tz)}` : undefined} />
+          <Tile label="UV-index" value={day.uvMax !== null ? Math.round(day.uvMax) : '–'} sub={day.uvMax !== null ? uvLabel(day.uvMax) : 'Niet beschikbaar'} />
         </div>
-        <span style={{ fontSize: 17, fontWeight: 500 }}>{describe(day.code)}</span>
-      </section>
-      <DayCharts key={day.key} day={day} tz={tz} />
-      <div className="tiles compact">
-        <Tile label="Neerslag" value={`${dec(day.precipSumMm)} mm`} sub={day.precipProb !== null ? `Kans ${Math.round(day.precipProb)}%` : undefined} />
-        <Tile label="Wind" value={`${Math.round(averageWind(day))} km/u`} sub={`${windDirection(day.windDirDeg)} · stoten ${Math.round(day.gustMaxKmh)} km/u`} />
-        <Tile label="Zon" value={day.sunrise !== null ? hhmm(day.sunrise, tz) : '–'} sub={day.sunset !== null ? `Op · onder om ${hhmm(day.sunset, tz)}` : undefined} />
-        <Tile label="UV-index" value={day.uvMax !== null ? Math.round(day.uvMax) : '–'} sub={day.uvMax !== null ? uvLabel(day.uvMax) : 'Niet beschikbaar'} />
+        <p className="footnote" style={{ padding: '0 8px', margin: 0 }}>
+          Verwachting: KNMI Harmonie (eerste 2,5 dag) en ECMWF via Open-Meteo. Verder dan 3 dagen vooruit is de verwachting een indicatie.
+        </p>
       </div>
-      <p className="footnote" style={{ padding: '0 8px', margin: 0 }}>
-        Verwachting: KNMI Harmonie (eerste 2,5 dag) en ECMWF via Open-Meteo. Verder dan 3 dagen vooruit is de verwachting een indicatie.
-      </p>
     </main>
   );
 }

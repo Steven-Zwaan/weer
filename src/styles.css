@@ -88,6 +88,18 @@ a {
   background: var(--surface);
   border-radius: var(--radius-card);
 }
+
+/* Swiping between pages (useSwipePager): the content that slides out is cut off at the screen
+   edge. No touch-action here: it would also stop the hour strip from scrolling sideways. */
+.swipe-area {
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+.pager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
 .eyebrow {
   font-size: 12px;
   font-weight: 600;
@@ -541,7 +553,8 @@ a {
   background: #e6ebe3;
   font-family: var(--font);
 }
-.osm-tiles {
+/* Per tile rather than on the whole tile layer: a filter on one large layer costs iOS a lot of memory. */
+.osm-tiles .leaflet-tile {
   filter: saturate(0.4) brightness(1.04);
 }
 .radarmap .chip {

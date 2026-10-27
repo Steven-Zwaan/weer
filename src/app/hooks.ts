@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type TouchEvent } from 'react';
 import { MINUTE } from '@/domain/time';
 import { useStore } from './store';
+import { prefersReducedMotion } from './platform';
 
 /** The current time, re-read every `everyMs` (and when the app comes back to the foreground). */
 export function useNow(everyMs = 30_000): number {
@@ -56,30 +57,112 @@ export function useAutoRefresh(): void {
   }, [ready]);
 }
 
+export interface SwipePager<T extends HTMLElement> {
+  /** The element that slides: the page content. */
+  ref: React.RefObject<T | null>;
+  /** Touch handlers for the area that listens (usually the whole screen). */
+  handlers: {
+    onTouchStart(e: TouchEvent): void;
+    onTouchMove(e: TouchEvent): void;
+    onTouchEnd(e: TouchEvent): void;
+    onTouchCancel(e: TouchEvent): void;
+  };
+  /** Slide to the next (+1) or previous (-1) page, as a swipe would (arrow keys). */
+  slide(dir: 1 | -1): void;
+}
+
+const LOCK_PX = 10; // movement before a gesture counts as sideways or vertical
+const EDGE_RESISTANCE = 0.3; // there is no page that way: the content only gives a little
+
 /**
- * A sideways swipe anywhere on a screen: left = next (+1), right = previous (-1). A swipe
- * that starts inside `[data-noswipe]` (charts, horizontal strips) belongs to that element.
+ * Swipe between pages (days, locations) like a pager: while the finger moves sideways the
+ * content follows it; on release it slides out and the next page slides in from the other
+ * side, or it springs back. Left = next (+1), right = previous (-1). A gesture that starts
+ * inside `[data-noswipe]` (charts, horizontal strips) belongs to that element. Transforms are
+ * set on the element directly, so a drag does not re-render React on every move.
  */
-export function useSwipe(onSwipe: (dir: 1 | -1) => void) {
-  const start = useRef<{ x: number; y: number; t: number } | null>(null);
-  return {
+export function useSwipePager<T extends HTMLElement>(canGo: (dir: 1 | -1) => boolean, go: (dir: 1 | -1) => void): SwipePager<T> {
+  const ref = useRef<T>(null);
+  const latest = useRef({ canGo, go });
+  latest.current = { canGo, go };
+  const start = useRef<{ x: number; y: number; t: number; lock: 'h' | 'v' | null; dx: number } | null>(null);
+  const busy = useRef(false);
+
+  const setX = (x: number) => {
+    if (ref.current) ref.current.style.transform = x ? `translateX(${x}px)` : '';
+  };
+  /**
+   * Move from `from` to `to`; the element keeps `to` afterwards. Never waits longer than the
+   * animation should take: a paused timeline (app sent to the background mid-swipe) must not
+   * leave the pager stuck, so a timer ends it at its final position.
+   */
+  const run = (from: number, to: number, ms: number): Promise<void> => {
+    setX(to);
+    const el = ref.current;
+    if (!el || prefersReducedMotion() || typeof el.animate !== 'function') return Promise.resolve();
+    const anim = el.animate([{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }], { duration: ms, easing: 'cubic-bezier(.2,.7,.3,1)' });
+    const done = anim.finished.then(
+      () => undefined,
+      () => undefined,
+    );
+    const late = new Promise<void>((r) => setTimeout(r, ms + 100)).then(() => anim.cancel());
+    return Promise.race([done, late]);
+  };
+  const nextFrame = () => new Promise<void>((r) => setTimeout(r, 0));
+
+  const slide = async (dir: 1 | -1, fromX = 0) => {
+    if (busy.current) return;
+    if (!latest.current.canGo(dir)) {
+      if (fromX) await run(fromX, 0, 200);
+      return;
+    }
+    busy.current = true;
+    const width = ref.current?.offsetWidth || window.innerWidth;
+    await run(fromX, -dir * width, 170); // the old page leaves
+    latest.current.go(dir);
+    await nextFrame(); // React renders the new page into the same element, still off screen
+    await run(dir * width, 0, 230); // and it comes in from the other side
+    busy.current = false;
+  };
+
+  const handlers = {
     onTouchStart(e: TouchEvent) {
       const target = e.target as HTMLElement;
-      if (e.touches.length !== 1 || target.closest('[data-noswipe]')) {
-        start.current = null;
-        return;
+      start.current =
+        e.touches.length === 1 && !busy.current && !target.closest('[data-noswipe]') ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now(), lock: null, dx: 0 } : null;
+    },
+    onTouchMove(e: TouchEvent) {
+      const s = start.current;
+      if (!s || s.lock === 'v') return;
+      const dx = e.touches[0].clientX - s.x;
+      const dy = e.touches[0].clientY - s.y;
+      if (!s.lock) {
+        if (Math.abs(dx) > LOCK_PX && Math.abs(dx) > Math.abs(dy)) s.lock = 'h';
+        else if (Math.abs(dy) > LOCK_PX) s.lock = 'v'; // a scroll: leave it to the page
+        else return;
       }
-      start.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+      s.dx = latest.current.canGo(dx < 0 ? 1 : -1) ? dx : dx * EDGE_RESISTANCE;
+      setX(s.dx);
     },
     onTouchEnd(e: TouchEvent) {
       const s = start.current;
       start.current = null;
-      if (!s) return;
+      if (!s || s.lock !== 'h') return;
       const dx = e.changedTouches[0].clientX - s.x;
-      const dy = e.changedTouches[0].clientY - s.y;
-      if (Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy) && Date.now() - s.t < 800) onSwipe(dx < 0 ? 1 : -1);
+      const width = ref.current?.offsetWidth || window.innerWidth;
+      const fast = Math.abs(dx) / Math.max(1, Date.now() - s.t) > 0.45; // px per ms: a flick
+      const dir: 1 | -1 = dx < 0 ? 1 : -1;
+      if (Math.abs(dx) > width * 0.22 || (fast && Math.abs(dx) > 40)) void slide(dir, s.dx);
+      else void run(s.dx, 0, 200);
+    },
+    onTouchCancel() {
+      const s = start.current;
+      start.current = null;
+      if (s?.lock === 'h') void run(s.dx, 0, 200);
     },
   };
+
+  return { ref, handlers, slide: (dir) => void slide(dir) };
 }
 
 /**
