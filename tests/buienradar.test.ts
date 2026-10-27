@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { nowcastFromMinutely, parseRaintext, valueToMm } from '@/api/buienradar';
+import { RADAR_BOUNDS, nowcastFromMinutely, parseRadarMeta, parseRaintext, valueToMm } from '@/api/buienradar';
 import { AMSTERDAM, MINUTE, fromZoned, hhmm } from '@/domain/time';
 
 // A real answer, recorded on 27 October 2026 at 15:03 for Utrecht.
@@ -47,6 +47,32 @@ describe('raintext parsing', () => {
   });
   it('ignores lines that are not value|HH:MM', () => {
     expect(parseRaintext('Not found: location must be inside the Netherlands or Belgium.', RECORDED)).toEqual([]);
+  });
+});
+
+describe('radar images (§6.3)', () => {
+  // A real frame list, recorded on 27 October 2026 at 15:45 Amsterdam time.
+  const meta = JSON.parse(readFileSync(new URL('./fixtures/buienradar-radar-meta.json', import.meta.url), 'utf8'));
+  const frames = parseRadarMeta(meta);
+  it('lists 24 frames of 5 minutes, about 2 hours ahead', () => {
+    expect(frames).toHaveLength(24);
+    expect(frames[1].time - frames[0].time).toBe(5 * MINUTE);
+    expect(frames[23].time - frames[0].time).toBe(115 * MINUTE);
+  });
+  it('reads the zone-less timestamps as UTC', () => {
+    expect(frames[0].time).toBe(Date.UTC(2026, 9, 27, 14, 45));
+    expect(hhmm(frames[0].time, AMSTERDAM)).toBe('15:45');
+  });
+  it('keeps only Buienradar image URLs', () => {
+    expect(frames.every((f) => f.url.startsWith('https://image.buienradar.nl/2.0/image/single/'))).toBe(true);
+    expect(parseRadarMeta({ times: [{ timestamp: '2026-10-27T14:45:00', url: 'https://example.com/x.png' }] })).toEqual([]);
+    expect(parseRadarMeta({})).toEqual([]);
+  });
+  it('the image covers NL and BE', () => {
+    const [[s, w], [n, e]] = RADAR_BOUNDS;
+    for (const [lat, lon] of [[53.45, 6.83], [50.75, 6.02], [51.0, 2.55], [49.5, 5.8]]) {
+      expect(lat >= s && lat <= n && lon >= w && lon <= e, `${lat},${lon}`).toBe(true);
+    }
   });
 });
 

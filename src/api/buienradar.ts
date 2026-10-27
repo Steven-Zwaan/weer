@@ -73,6 +73,45 @@ export async function fetchBuienradar(lat: number, lon: number, signal?: AbortSi
   return { source: 'buienradar', stepMinutes: 5, steps, fetchedAt: now };
 }
 
+// ---------------- radar images ----------------
+//
+// Buienradar's forecast radar images (SPEC §6.3): the same nowcast as the raintext, one image
+// per 5 minutes up to ~2 hours ahead, transparent PNG in Web Mercator. The geographic extent is
+// not documented; RADAR_BOUNDS is the extent other projects use, and scripts/check-radar-bounds.mjs
+// checks it against KNMI's exactly georeferenced radar (it matched to the pixel, see SPEC §6.3).
+
+export const RADAR_IMAGE = { type: 'RadarMapRainWebMercatorNL', width: 500, height: 512 } as const;
+/** [[south, west], [north, east]] of every radar image. */
+export const RADAR_BOUNDS: [[number, number], [number, number]] = [
+  [49.5, 0],
+  [54.8, 10],
+];
+
+export const RADAR_META_URL =
+  `https://image.buienradar.nl/2.0/metadata/sprite/${RADAR_IMAGE.type}?extension=png&width=${RADAR_IMAGE.width}&height=${RADAR_IMAGE.height}` +
+  '&renderText=False&renderBranding=False&renderBackground=False&history=0&forecast=24&skip=0';
+
+export interface RadarFrame {
+  time: number;
+  url: string;
+}
+
+interface RadarMeta {
+  times?: { timestamp?: string; url?: string }[];
+}
+
+/** The frame list. Timestamps are UTC without a zone ("2026-10-27T14:45:00"). */
+export function parseRadarMeta(json: RadarMeta): RadarFrame[] {
+  return (json.times ?? [])
+    .map((t) => ({ time: Date.parse(/[zZ]|[+-]\d\d:?\d\d$/.test(t.timestamp ?? '') ? t.timestamp! : `${t.timestamp}Z`), url: t.url ?? '' }))
+    .filter((f) => Number.isFinite(f.time) && f.url.startsWith('https://image.buienradar.nl/'))
+    .sort((a, b) => a.time - b.time);
+}
+
+export async function fetchRadarFrames(signal?: AbortSignal): Promise<RadarFrame[]> {
+  return parseRadarMeta(JSON.parse(await getText(RADAR_META_URL, { timeoutMs: 8_000, signal })) as RadarMeta);
+}
+
 /** 15-minute Open-Meteo steps as a nowcast: 8 bars covering the next 2 hours. */
 export function nowcastFromMinutely(minutely: RainStep[], fetchedAt: number, now: number): Nowcast | null {
   const ahead = minutely.filter((s) => s.time + 15 * MINUTE > now).slice(0, 8);

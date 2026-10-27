@@ -3,16 +3,18 @@ import { hoursAhead } from '@/domain/days';
 import { iconOf, describe } from '@/domain/weather';
 import { dec, tempLabel } from '@/domain/format';
 import { zoned } from '@/domain/time';
+import { useDragScroll } from '@/app/hooks';
 import { WeatherIcon } from './Icons';
 
 /** "Per uur": 10 columns of 52 px, scrolling sideways (§2.1 item 4). */
 export function HourStrip({ forecast, now }: { forecast: Forecast; now: number }) {
   const hours = hoursAhead(forecast, now, 10);
   const c = forecast.current;
+  const strip = useDragScroll<HTMLDivElement>();
   return (
     <section className="card hourstrip" aria-label="Per uur">
       <div className="eyebrow">Per uur</div>
-      <div className="hours" data-noswipe>
+      <div className="hours" ref={strip} data-noswipe>
         {hours.map((h, i) => {
           const first = i === 0;
           // "Nu" shows the current conditions; later columns the hourly forecast.

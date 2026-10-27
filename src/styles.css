@@ -268,12 +268,6 @@ a {
   font-weight: 600;
   color: var(--accent);
 }
-.cardfoot {
-  font-size: 12px;
-  color: var(--muted);
-  border-top: 1px solid var(--line);
-  padding-top: 10px;
-}
 
 /* Rain chart (one component, four sizes) */
 .rainchart {
@@ -346,13 +340,6 @@ a {
   white-space: nowrap;
   pointer-events: none;
 }
-.rainchart .nowmark {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  border-left: 1.5px dotted var(--uncertain);
-  pointer-events: none;
-}
 
 .timeaxis {
   position: relative;
@@ -382,6 +369,7 @@ a {
   display: flex;
   gap: 4px;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 14px 10px 2px;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
@@ -519,15 +507,33 @@ a {
   color: var(--muted);
 }
 
-/* Radar */
+/* Radar: one screen high. The map takes whatever the top bar and the chart sheet leave. */
+.radar-screen {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 440px;
+  height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: calc(8px + var(--sat));
+}
+.radar-screen .backbar {
+  flex: none;
+  padding: 0 calc(var(--pad-screen) + var(--sar)) 0 calc(var(--pad-screen) + var(--sal));
+}
 .radarmap {
   position: relative;
-  height: 420px;
-  margin: 0 -4px;
-  border-radius: var(--radius-card);
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   background: #e6ebe3;
   isolation: isolate;
+}
+/* The sheet overlaps the map by 24 px so its rounded corners sit on the map; keep controls clear of it. */
+.radarmap .leaflet-bottom {
+  bottom: 24px;
 }
 .radarmap .leaflet-container {
   position: absolute;
@@ -573,7 +579,7 @@ a {
 }
 .radarmap .chip.legend {
   left: 12px;
-  bottom: 12px;
+  bottom: 36px; /* 12 px above the sheet */
   display: flex;
   gap: 10px;
   align-items: center;
@@ -597,12 +603,53 @@ a {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 8px 0 0 0;
 }
-.radarpanel {
-  margin: 0 -4px;
-  padding: 16px 18px 14px;
+/* Bottom sheet with the chart: drag it up to make the chart taller, down to make it small again. */
+.sheet {
+  flex: none;
+  position: relative;
+  z-index: 2;
+  margin-top: -24px;
+  background: var(--surface);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  padding: 0 calc(18px + var(--sar)) calc(10px + var(--sab)) calc(18px + var(--sal));
   display: flex;
   flex-direction: column;
   gap: 12px;
+  touch-action: none; /* vertical drags move the sheet, never the page */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.grabber {
+  align-self: stretch;
+  height: 22px;
+  margin: 0 -18px -4px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ns-resize;
+}
+.grabber::before {
+  content: '';
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--grid);
+}
+.sheet .footnote {
+  font-size: 11px;
+  margin: -2px 0 0;
+}
+/* Snap to a size smoothly; while the finger drags, follow it directly. */
+.sheet:not(.dragging) .rainchart,
+.sheet:not(.dragging) .rainchart .bar,
+.sheet:not(.dragging) .rainchart .iline,
+.sheet:not(.dragging) .rainchart .ilabel {
+  transition:
+    height 0.22s ease,
+    bottom 0.22s ease;
 }
 .player {
   display: flex;
@@ -632,6 +679,7 @@ a {
   display: flex;
   gap: 8px;
   overflow-x: auto;
+  overflow-y: hidden;
   margin: 0 calc(-1 * var(--pad-screen));
   padding: 0 var(--pad-screen) 4px;
   scrollbar-width: none;
@@ -689,6 +737,17 @@ a {
 }
 .infobar.active {
   background: var(--info-active);
+}
+.daycharts .infobar {
+  height: 60px; /* the same at rest and while dragging: the charts below never move */
+}
+.infobar.idle {
+  background: none;
+  padding-left: 0;
+  justify-content: flex-start;
+}
+.infobar.idle .eyebrow {
+  font-size: 12px;
 }
 .infobar b {
   font-size: 15px;
@@ -903,6 +962,18 @@ a {
   color: #fff;
   font-size: 15px;
   font-weight: 600;
+}
+
+/* With a mouse a horizontal strip scrolls by dragging or the wheel (useDragScroll); no scrollbar. */
+@media (hover: hover) and (pointer: fine) {
+  .hours,
+  .daypicker {
+    cursor: grab;
+  }
+  .hours.dragging,
+  .daypicker.dragging {
+    cursor: grabbing;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

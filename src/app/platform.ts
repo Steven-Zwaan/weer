@@ -10,20 +10,40 @@ export interface Position {
 
 export type GeoResult = { ok: true; position: Position } | { ok: false; reason: 'denied' | 'unavailable' };
 
-/** One GPS fix (SPEC §8: timeout 8 s, maximumAge 10 min). */
-export function currentPosition(): Promise<GeoResult> {
+/**
+ * One location fix. `maximumAge` lets the OS answer from a position it already has, which
+ * is close to instant; a low-accuracy fix (cell/wifi) is plenty for weather and much faster
+ * than waiting for GPS.
+ */
+export function currentPosition({ maximumAge, timeoutMs }: { maximumAge: number; timeoutMs: number }): Promise<GeoResult> {
   return new Promise((resolve) => {
     if (!('geolocation' in navigator)) return resolve({ ok: false, reason: 'unavailable' });
     try {
       navigator.geolocation.getCurrentPosition(
         (p) => resolve({ ok: true, position: { lat: p.coords.latitude, lon: p.coords.longitude } }),
         (e) => resolve({ ok: false, reason: e.code === e.PERMISSION_DENIED ? 'denied' : 'unavailable' }),
-        { enableHighAccuracy: false, timeout: 8_000, maximumAge: 10 * 60_000 },
+        { enableHighAccuracy: false, timeout: timeoutMs, maximumAge },
       );
     } catch {
       resolve({ ok: false, reason: 'unavailable' });
     }
   });
+}
+
+/** Call `cb` when location access becomes granted (e.g. changed in Settings while the app is open). */
+export function onLocationGranted(cb: () => void): void {
+  try {
+    void navigator.permissions
+      ?.query({ name: 'geolocation' })
+      .then((status) => {
+        status.addEventListener('change', () => {
+          if (status.state === 'granted') cb();
+        });
+      })
+      .catch(() => undefined);
+  } catch {
+    /* no Permissions API: the next launch picks it up */
+  }
 }
 
 export const prefersReducedMotion = (): boolean => {

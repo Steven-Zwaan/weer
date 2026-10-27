@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "icons": "node scripts/icons.mjs",
-    "check-sources": "node scripts/check-sources.ts"
+    "check-sources": "node scripts/check-sources.ts",
+    "check-radar": "node scripts/check-radar-bounds.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

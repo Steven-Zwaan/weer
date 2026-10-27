@@ -2,9 +2,8 @@
  * Vandaag (§2.1): hero, rain card, hours, 10 days and tiles for the active location.
  * Swiping sideways anywhere outside the charts and the hour strip switches location.
  */
-import { useEffect, useRef, type TouchEvent } from 'react';
 import { useActive, useStore } from '@/app/store';
-import { useNow } from '@/app/hooks';
+import { useArrowKeys, useNow, useSwipe } from '@/app/hooks';
 import { navigate } from '@/app/router';
 import { AMSTERDAM, hhmm } from '@/domain/time';
 import { HeroNow } from '@/ui/HeroNow';
@@ -15,49 +14,19 @@ import { DetailTiles } from '@/ui/DetailTiles';
 import { PageDots, SourceLine } from '@/ui/TopBars';
 import { IconList } from '@/ui/Icons';
 
-function useSwipe(onSwipe: (dir: 1 | -1) => void) {
-  const start = useRef<{ x: number; y: number; t: number } | null>(null);
-  return {
-    onTouchStart(e: TouchEvent) {
-      const target = e.target as HTMLElement;
-      if (e.touches.length !== 1 || target.closest('[data-noswipe]')) {
-        start.current = null;
-        return;
-      }
-      start.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
-    },
-    onTouchEnd(e: TouchEvent) {
-      const s = start.current;
-      start.current = null;
-      if (!s) return;
-      const dx = e.changedTouches[0].clientX - s.x;
-      const dy = e.changedTouches[0].clientY - s.y;
-      if (Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy) && Date.now() - s.t < 800) onSwipe(dx < 0 ? 1 : -1);
-    },
-  };
-}
-
 export function Today() {
   const { location, entry, index, count } = useActive();
   const gpsStatus = useStore((s) => s.gpsStatus);
   const setActive = useStore((s) => s.setActive);
   const refresh = useStore((s) => s.refresh);
   const now = useNow();
-  const swipe = useSwipe((dir) => {
-    const next = index + dir;
+  // Swipe (or arrow keys on a desktop) to the next or previous location.
+  const step = (dir: 1 | -1) => {
+    const next = useStore.getState().activeIndex + dir; // not `index`: two steps in one frame both count
     if (next >= 0 && next < count) setActive(next);
-  });
-
-  // Arrow keys do what the swipe does (handy on a desktop browser).
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement) return;
-      if (e.key === 'ArrowRight' && index + 1 < count) setActive(index + 1);
-      if (e.key === 'ArrowLeft' && index > 0) setActive(index - 1);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [index, count, setActive]);
+  };
+  const swipe = useSwipe(step);
+  useArrowKeys(step);
 
   const topbar = (
     <div className="topbar">
@@ -116,7 +85,9 @@ export function Today() {
           </div>
         )
       )}
-      <SourceLine>Neerslag: Buienradar, KNMI · Verwachting: KNMI Harmonie via Open-Meteo</SourceLine>
+      <SourceLine>
+        Neerslag: {entry.nowcast?.source === 'open-meteo' ? 'Open-Meteo (buiten bereik van Buienradar)' : 'Buienradar, KNMI'} · Verwachting: KNMI Harmonie via Open-Meteo
+      </SourceLine>
     </main>
   );
 }

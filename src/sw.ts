@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 /**
- * Service worker (SPEC §9). Precache the app shell so a cold start works offline; map and
- * radar tiles from a limited cache. Weather API answers are deliberately not cached here:
+ * Service worker (SPEC §9). Precache the app shell so a cold start works offline; map tiles
+ * and radar images from a limited cache. Weather API answers are deliberately not cached here:
  * the app keeps the last answer per location in localStorage and knows how old it is. A
  * network-first fallback in this worker would hand the app an old answer that looks fresh
  * (no offline notice, a wrong "Bijgewerkt" time).
@@ -27,10 +27,11 @@ registerRoute(
   new StaleWhileRevalidate({ cacheName: 'weer-osm', plugins: [ok, new ExpirationPlugin({ maxEntries: 200, purgeOnQuotaError: true })] }),
 );
 
-// KNMI radar: an image for a given TIME never changes; keep the last few hours.
+// Buienradar radar images: the URL names the run and the moment, so an image never changes; keep
+// the last few hours. (The metadata request that lists them is not cached.)
 registerRoute(
-  ({ url }) => url.hostname === 'geoservices.knmi.nl' && /getmap/i.test(url.searchParams.get('REQUEST') ?? url.searchParams.get('request') ?? ''),
-  new CacheFirst({ cacheName: 'weer-radar', plugins: [ok, new ExpirationPlugin({ maxEntries: 150, maxAgeSeconds: 3 * 3600, purgeOnQuotaError: true })] }),
+  ({ url }) => (url.hostname === 'image.buienradar.nl' && url.pathname.includes('/image/single/')) || url.hostname === 'image-cdn.buienradar.nl',
+  new CacheFirst({ cacheName: 'weer-radar', plugins: [ok, new ExpirationPlugin({ maxEntries: 80, maxAgeSeconds: 3 * 3600, purgeOnQuotaError: true })] }),
 );
 
 self.addEventListener('message', (event) => {

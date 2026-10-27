@@ -11,14 +11,15 @@ const LON = 5.12;
 
 interface Check {
   name: string;
-  url: string;
+  url: string | (() => string); // a function when it depends on an earlier check
   expect: (body: string) => string | null; // null = ok, otherwise what is wrong
 }
 
 const now = new Date();
-const end = new Date(Math.floor(now.getTime() / 300_000) * 300_000);
-const start = new Date(end.getTime() - 70 * 60_000);
-const iso = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+const RADAR_META =
+  'https://image.buienradar.nl/2.0/metadata/sprite/RadarMapRainWebMercatorNL?extension=png&width=500&height=512' +
+  '&renderText=False&renderBranding=False&renderBackground=False&history=0&forecast=24&skip=0';
+let frameUrl = '';
 
 const checks: Check[] = [
   {
@@ -58,21 +59,24 @@ const checks: Check[] = [
     expect: (b) => ((JSON.parse(b) as { response?: { docs?: { woonplaatsnaam?: string }[] } }).response?.docs?.[0]?.woonplaatsnaam ? null : 'no woonplaatsnaam'),
   },
   {
-    name: '6.3 KNMI radar GetFeatureInfo',
-    url:
-      'https://geoservices.knmi.nl/adagucserver?dataset=RADAR&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=RAD_NL25_PCP_CM&QUERY_LAYERS=RAD_NL25_PCP_CM' +
-      `&CRS=EPSG:4326&BBOX=${LAT - 0.01},${LON - 0.01},${LAT + 0.01},${LON + 0.01}&WIDTH=3&HEIGHT=3&I=1&J=1&INFO_FORMAT=application/json&TIME=${iso(start)}/${iso(end)}`,
+    name: '6.3 Buienradar radar frames',
+    url: RADAR_META,
     expect: (b) => {
-      const n = Object.keys((JSON.parse(b) as { data?: object }[])[0]?.data ?? {}).length;
-      return n >= 6 ? null : `only ${n} radar frames in the last 70 minutes`;
+      const times = (JSON.parse(b) as { times?: { timestamp: string; url: string }[] }).times ?? [];
+      if (times.length < 20) return `expected ~24 frames, got ${times.length}`;
+      const first = Date.parse(`${times[0].timestamp}Z`);
+      const step = Date.parse(`${times[1].timestamp}Z`) - first;
+      if (step !== 5 * 60_000) return `expected 5-minute frames, got ${step / 60_000} min`;
+      // Zone-less timestamps are UTC: the first frame is about now.
+      if (Math.abs(first - now.getTime()) > 20 * 60_000) return `first frame ${times[0].timestamp} is not about now (UTC?)`;
+      frameUrl = times[Math.floor(times.length / 2)].url;
+      return null;
     },
   },
   {
-    name: '6.3 KNMI radar GetMap tile',
-    url:
-      'https://geoservices.knmi.nl/adagucserver?dataset=RADAR&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=RAD_NL25_PCP_CM&STYLES=precip-blue-transparent/nearest' +
-      '&CRS=EPSG:3857&BBOX=500000,6700000,700000,6900000&WIDTH=256&HEIGHT=256&FORMAT=image/png&TRANSPARENT=TRUE',
-    expect: (b) => (b.startsWith('�PNG') || b.includes('PNG') ? null : 'not a PNG'),
+    name: '6.3 Buienradar radar image',
+    url: () => frameUrl,
+    expect: (b) => (b.includes('PNG') ? null : 'not a PNG'),
   },
   {
     name: '6.3 OpenStreetMap tile',
@@ -84,7 +88,9 @@ const checks: Check[] = [
 let failed = 0;
 for (const c of checks) {
   try {
-    const res = await fetch(c.url, { headers: { Origin: ORIGIN, 'User-Agent': 'weer-app source check (personal use)' }, signal: AbortSignal.timeout(15_000) });
+    const url = typeof c.url === 'function' ? c.url() : c.url;
+    if (!url) throw new Error('skipped: depends on a failed check');
+    const res = await fetch(url, { headers: { Origin: ORIGIN, 'User-Agent': 'weer-app source check (personal use)' }, signal: AbortSignal.timeout(15_000) });
     const body = await res.text();
     const cors = res.headers.get('access-control-allow-origin');
     const problem = !res.ok ? `HTTP ${res.status}` : !cors ? 'no Access-Control-Allow-Origin header (needs the proxy)' : c.expect(body);
@@ -95,5 +101,5 @@ for (const c of checks) {
     console.log(`FAIL  ${c.name.padEnd(32)} ${e instanceof Error ? e.message : String(e)}`);
   }
 }
-console.log(failed ? `\n${failed} source(s) need attention.` : '\nAll sources confirmed.');
+console.log(failed ? `\n${failed} source(s) need attention.` : '\nAll sources confirmed. The radar image position: npm run check-radar.');
 process.exitCode = failed ? 1 : 0;

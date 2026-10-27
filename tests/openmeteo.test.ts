@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 import { forecastUrl, needsSupplement, parseForecast, type OMResponse } from '@/api/openmeteo';
 import { parsePlaces, searchTerm } from '@/api/geocoding';
 import { parseReverse } from '@/api/pdok';
-import { parseFeatureInfo } from '@/api/knmi';
 import { AMSTERDAM, hhmm } from '@/domain/time';
 
 const load = (name: string) => JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8'));
@@ -96,14 +95,5 @@ describe('PDOK reverse geocoding', () => {
   it('names the town', () => {
     expect(parseReverse(load('pdok-reverse-utrecht.json'))).toEqual({ name: 'Utrecht', admin: 'Utrecht' });
     expect(parseReverse({ response: { docs: [] } })).toBeNull();
-  });
-});
-
-describe('KNMI radar GetFeatureInfo', () => {
-  it('gives the available frames with the rate at the location', () => {
-    const frames = parseFeatureInfo(load('knmi-featureinfo-utrecht.json'));
-    expect(frames.length).toBeGreaterThanOrEqual(12);
-    expect(frames[1].time - frames[0].time).toBe(5 * 60_000);
-    expect(frames.every((f) => f.mmPerHour >= 0)).toBe(true);
   });
 });

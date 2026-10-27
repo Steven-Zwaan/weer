@@ -9,6 +9,7 @@ export const KEYS = {
   activeIndex: 'weer.activeIndex', // index into [gps?, ...locations]
   gps: 'weer.gps', // the last GPS location, so its cache shows before the next fix
   cache: 'weer.cache.v1', // Record<locationId, CacheEntry>
+  radarExpanded: 'weer.radarExpanded', // the radar's chart sheet was left large
 } as const;
 
 export interface CacheEntry {
@@ -58,4 +59,6 @@ export const persist = {
     return typeof c === 'object' && c !== null ? (c as Record<string, CacheEntry>) : {};
   },
   saveCache: (c: Record<string, CacheEntry>) => write(KEYS.cache, c),
+  loadRadarExpanded: (): boolean => read<unknown>(KEYS.radarExpanded, false) === true,
+  saveRadarExpanded: (v: boolean) => write(KEYS.radarExpanded, v),
 };

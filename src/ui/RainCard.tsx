@@ -19,7 +19,6 @@ export function RainCard({ nowcast, tz, now }: { nowcast: Nowcast | null; tz: st
   const scrubbing = idx !== null && !stale && steps[idx] !== undefined;
   const eyebrow = scrubbing ? scrubEyebrow(steps, idx, tz) : 'Neerslag · komende 2 uur';
   const headline = scrubbing ? levelWithAmount(steps[idx].mmPerHour) : summary;
-  const source = nowcast?.source === 'open-meteo' ? 'Bron: Open-Meteo (buiten bereik van Buienradar)' : 'Bron: Buienradar en KNMI';
   const placeholder = stale && steps.length < 2;
 
   return (
@@ -54,7 +53,6 @@ export function RainCard({ nowcast, tz, now }: { nowcast: Nowcast | null; tz: st
         ariaLabel={summary}
       />
       <TimeAxis labels={rainAxis(steps.map((s) => s.time), tz)} n={placeholder ? 25 : steps.length} />
-      <div className="cardfoot">Sleep over de grafiek voor details · {source}</div>
     </section>
   );
 }

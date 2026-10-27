@@ -1,7 +1,11 @@
-/** Dagdetail (§2.3): pick a day, see its summary, linked charts and tiles. */
+/**
+ * Dagdetail (§2.3): pick a day, see its summary, linked charts and tiles. Swiping sideways
+ * anywhere outside the charts and the day picker goes to the next or previous day.
+ */
 import { useEffect } from 'react';
 import { useActive } from '@/app/store';
-import { navigate } from '@/app/router';
+import { useArrowKeys, useSwipe } from '@/app/hooks';
+import { navigate, parseHash } from '@/app/router';
 import { averageWind } from '@/domain/days';
 import { describe } from '@/domain/weather';
 import { dec, longDate, tempLabel, uvLabel, windDirection } from '@/domain/format';
@@ -14,21 +18,30 @@ import { Tile } from '@/ui/DetailTiles';
 export function DayDetail({ index }: { index: number }) {
   const { location, entry } = useActive();
   const f = entry.forecast;
+  const count = f?.days.length ?? 0;
+  const i = Math.max(0, Math.min(count - 1, index));
+  const select = (d: number) => navigate({ name: 'day', index: d }, { replace: true });
+  const step = (dir: 1 | -1) => {
+    const route = parseHash(window.location.hash); // not `i`: two steps in one frame both count
+    const cur = route.name === 'day' ? Math.min(route.index, count - 1) : i;
+    if (cur + dir >= 0 && cur + dir < count) select(cur + dir);
+  };
+  const swipe = useSwipe(step);
+  useArrowKeys(step);
 
   // Nothing to show (no forecast yet, or the location went away): back to Vandaag.
   useEffect(() => {
     if (!location || (!f && !entry.loading)) navigate({ name: 'today' }, { replace: true });
   }, [location, f, entry.loading]);
-  if (!location || !f || f.days.length === 0) return <main className="screen sub" />;
+  if (!location || !f || count === 0) return <main className="screen sub" />;
 
-  const i = Math.max(0, Math.min(f.days.length - 1, index));
   const day = f.days[i];
   const tz = f.timezone;
 
   return (
-    <main className="screen sub">
-      <BackBar label={location.name} title={`${f.days.length} dagen`} />
-      <DayPicker days={f.days} selected={i} tz={tz} onSelect={(d) => navigate({ name: 'day', index: d }, { replace: true })} />
+    <main className="screen sub" {...swipe}>
+      <BackBar label={location.name} title={`${count} dagen`} />
+      <DayPicker days={f.days} selected={i} tz={tz} onSelect={select} />
       <section className="card daysum">
         <span style={{ fontSize: 15, color: 'var(--muted)' }}>{longDate(day.date, tz)}</span>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>

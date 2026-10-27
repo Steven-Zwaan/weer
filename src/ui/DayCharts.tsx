@@ -25,23 +25,27 @@ export function DayCharts({ day, tz }: { day: Day; tz: string }) {
   const scrub = useScrub(n, setHour, end, GUTTER);
   const h = hour !== null ? hours[hour] : undefined;
 
-  let main = 'Sleep over de grafieken';
-  let sub = 'Zie per uur temperatuur, weer en neerslag';
-  if (h) {
-    const hh = String(zoned(h.time, tz).hour).padStart(2, '0');
-    main = `${hh}:00 · ${tempLabel(h.temp)} · ${h.precipMm > 0 ? levelText(h.precipMm) : describe(h.code, h.isDay)}`;
-    sub = `Neerslag ${dec(h.precipMm)} mm · Wind ${Math.round(h.windKmh)} km/u ${windDirection(h.windDirDeg).toLowerCase()}`;
-  }
   const peak = chart && hours[chart.peak];
 
   return (
     <section className="card daycharts" aria-label="Temperatuur en neerslag per uur">
-      <span className="eyebrow">Temperatuur</span>
-      <div className={`infobar${h ? ' active' : ''}`} aria-live="polite">
-        <b>{main}</b>
-        <span>{sub}</span>
+      {/* One fixed-height header: the title at rest, the hour under the finger while dragging (§5),
+          so the charts never move under the finger. */}
+      <div className={`infobar${h ? ' active' : ' idle'}`} aria-live="polite">
+        {h ? (
+          <>
+            <b>
+              {String(zoned(h.time, tz).hour).padStart(2, '0')}:00 · {tempLabel(h.temp)} · {h.precipMm > 0 ? levelText(h.precipMm) : describe(h.code, h.isDay)}
+            </b>
+            <span>
+              Neerslag {dec(h.precipMm)} mm · Wind {Math.round(h.windKmh)} km/u {windDirection(h.windDirDeg).toLowerCase()}
+            </span>
+          </>
+        ) : (
+          <span className="eyebrow">Temperatuur</span>
+        )}
       </div>
-      <div className="scrubarea" ref={ref} {...scrub}>
+      <div className="scrubarea" ref={ref} data-noswipe {...scrub}>
         <div style={{ position: 'relative', height: 120, pointerEvents: 'none' }}>
           {chart && W > 0 && (
             <svg width={W} height={120} viewBox={`0 0 ${W} 120`} role="img" aria-label={`Temperatuur van ${tempLabel(day.min)} tot ${tempLabel(day.max)}`}>

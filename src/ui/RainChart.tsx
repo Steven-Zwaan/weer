@@ -26,8 +26,6 @@ interface Props {
   muted?: boolean;
   cursor?: number | null;
   cursorMode?: CursorMode;
-  /** Mark this step with a dotted line (the "Nu" of the radar timeline). */
-  nowIndex?: number | null;
   onScrub?: (i: number | null) => void;
   ariaLabel?: string;
 }
@@ -40,7 +38,7 @@ function opacityOf(i: number, p: Props): number {
 }
 
 export const RainChart = memo(function RainChart(props: Props) {
-  const { values, height: H, labels = true, mini = false, fade = false, muted = false, cursor = null, onScrub, nowIndex = null } = props;
+  const { values, height: H, labels = true, mini = false, fade = false, muted = false, cursor = null, onScrub } = props;
   const n = values.length;
   const gutter = labels ? 40 : 0;
   const shape = mini ? MINI_BAR : BAR;
@@ -77,7 +75,6 @@ export const RainChart = memo(function RainChart(props: Props) {
           </span>
         </>
       )}
-      {nowIndex !== null && nowIndex > 0 && <div className="nowmark" style={{ left: `calc((100% - ${gutter}px) * ${(nowIndex / n).toFixed(4)} - 1.5px)` }} />}
       <div className={`bars${onScrub ? ' interactive' : ''}`} style={{ right: gutter }} {...(onScrub ? scrub : {})}>
         {values.map((v, i) => {
           const active = cursor === i;

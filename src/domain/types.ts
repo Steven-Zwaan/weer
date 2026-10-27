@@ -88,10 +88,9 @@ export interface Forecast {
   fetchedAt: number;
 }
 
-/** One position on the radar timeline: a past radar frame or a nowcast step. */
+/** One position on the radar timeline: a nowcast step and the radar image for that moment. */
 export interface RadarStep {
   time: number;
-  mmPerHour: number | null; // at the location; null when the radar had no value
+  mmPerHour: number | null; // at the location; null without a nowcast
   frame: number | null; // time of the radar image to show; null = no image for this moment
-  kind: 'past' | 'forecast';
 }

@@ -1,32 +1,29 @@
 /**
- * The radar map (§2.2, §6.3): Leaflet on OpenStreetMap tiles, one KNMI WMS layer per radar
- * frame. Every frame layer stays on the map at opacity 0 so its tiles are loaded before
- * it is shown; switching frames is an opacity change, without flicker.
+ * The radar map (§2.2, §6.3): Leaflet on OpenStreetMap tiles with one Buienradar image overlay
+ * per forecast step. Every overlay is on the map from the start so it is loaded before it is
+ * shown; only the current one is visible. Hidden ones use `visibility: hidden` rather than
+ * opacity 0, so a phone does not composite two dozen map-sized layers.
  */
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { KNMI_WMS, RADAR_DATASET, RADAR_LAYER, RADAR_STYLE } from '@/api/knmi';
-import { wmsTime } from '@/domain/radar';
+import { RADAR_BOUNDS, type RadarFrame } from '@/api/buienradar';
 
 const ZOOM = 10; // about 35-40 km across a phone-wide map at Dutch latitudes
-const SHOWN = 0.85;
-const DIMMED = 0.45; // forecast steps: the newest image, faded
 
 interface Props {
   lat: number;
   lon: number;
-  frames: number[];
-  frame: number | null;
-  dimmed: boolean;
+  frames: RadarFrame[];
+  frame: number | null; // time of the frame to show
   label: string;
 }
 
-export function RadarMap({ lat, lon, frames, frame, dimmed, label }: Props) {
+export function RadarMap({ lat, lon, frames, frame, label }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const marker = useRef<L.LayerGroup | null>(null);
-  const layers = useRef(new Map<number, L.TileLayer.WMS>());
+  const overlays = useRef(new Map<number, L.ImageOverlay>());
 
   useEffect(() => {
     if (!el.current) return;
@@ -39,12 +36,17 @@ export function RadarMap({ lat, lon, frames, frame, dimmed, label }: Props) {
       attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-bijdragers',
     }).addTo(m);
     map.current = m;
-    const frameLayers = layers.current;
+    // The map grows and shrinks with the chart sheet: keep Leaflet's size in step (a ResizeObserver
+    // reports at most once per frame) and keep the centre, the location, in the middle of what stays visible.
+    const ro = new ResizeObserver(() => m.invalidateSize({ pan: true, debounceMoveend: true }));
+    ro.observe(el.current);
+    const layers = overlays.current;
     return () => {
+      ro.disconnect();
       m.remove();
       map.current = null;
       marker.current = null;
-      frameLayers.clear();
+      layers.clear();
     };
     // Created once; centre changes are handled below.
   }, []);
@@ -61,42 +63,35 @@ export function RadarMap({ lat, lon, frames, frame, dimmed, label }: Props) {
     ]).addTo(m);
   }, [lat, lon]);
 
-  // Keep one WMS layer per frame.
-  const key = frames.join(',');
+  // One overlay per frame; frames that left the list go away.
+  const key = frames.map((f) => f.time).join(',');
   useEffect(() => {
     const m = map.current;
     if (!m) return;
-    const want = new Set(frames);
-    for (const [t, layer] of layers.current) {
+    const want = new Map(frames.map((f) => [f.time, f.url]));
+    for (const [t, layer] of overlays.current) {
       if (!want.has(t)) {
         layer.remove();
-        layers.current.delete(t);
+        overlays.current.delete(t);
       }
     }
-    for (const t of frames) {
-      if (layers.current.has(t)) continue;
-      const layer = L.tileLayer.wms(`${KNMI_WMS}?dataset=${RADAR_DATASET}`, {
-        layers: RADAR_LAYER,
-        styles: RADAR_STYLE,
-        format: 'image/png',
-        transparent: true,
-        version: '1.3.0',
-        tileSize: 512,
-        opacity: 0,
-        crossOrigin: true,
-        attribution: 'Radar: KNMI',
-        // Unknown options become WMS parameters.
-        time: wmsTime(t),
-      } as L.WMSOptions);
+    for (const [t, url] of want) {
+      if (overlays.current.has(t)) continue;
+      const layer = L.imageOverlay(url, RADAR_BOUNDS, { crossOrigin: true, interactive: false, className: 'radar-frame', attribution: 'Radar: Buienradar' });
       layer.addTo(m);
-      layers.current.set(t, layer);
+      const img = layer.getElement();
+      if (img) img.style.visibility = 'hidden';
+      overlays.current.set(t, layer);
     }
   }, [key]);
 
   // Show the current frame.
   useEffect(() => {
-    for (const [t, layer] of layers.current) layer.setOpacity(t === frame ? (dimmed ? DIMMED : SHOWN) : 0);
-  }, [frame, dimmed, key]);
+    for (const [t, layer] of overlays.current) {
+      const img = layer.getElement();
+      if (img) img.style.visibility = t === frame ? 'visible' : 'hidden';
+    }
+  }, [frame, key]);
 
   return <div ref={el} role="img" aria-label={label} style={{ position: 'absolute', inset: 0 }} />;
 }

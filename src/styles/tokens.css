@@ -18,10 +18,11 @@
   --warm: #e39a4a; /* temperatuurbalk warme dag */
   --cool: #7fa6d9; /* temperatuurbalk koele dag */
   --danger: #d2433a; /* verwijderen */
-  --radar-1: #bcd5f6; /* licht */
-  --radar-2: #7eaeee; /* matig */
-  --radar-3: #3f7bdb; /* zwaar */
-  --radar-4: #1e4fa8; /* extreem */
+  /* Radar legend: sampled from Buienradar's own radar images, so the legend matches the map. */
+  --radar-1: #dcdcfa; /* licht */
+  --radar-2: #7a7af5; /* matig */
+  --radar-3: #1a32d4; /* zwaar */
+  --radar-4: #e8231a; /* extreem */
 
   --radius-card: 24px;
   --radius-tile: 20px;

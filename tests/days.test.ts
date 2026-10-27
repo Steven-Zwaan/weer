@@ -82,31 +82,36 @@ describe('time axis', () => {
 });
 
 describe('radar timeline (§2.2, §6.3)', () => {
-  const t0 = fromZoned(2026, 10, 27, 14, 0, AMSTERDAM);
-  const past = Array.from({ length: 14 }, (_, i) => ({ time: t0 + i * 5 * MINUTE, mmPerHour: 0.1 })); // 14:00-15:05
+  const t0 = fromZoned(2026, 10, 27, 15, 0, AMSTERDAM);
   const nowcast: Nowcast = {
     source: 'buienradar',
     stepMinutes: 5,
-    fetchedAt: t0 + 70 * MINUTE,
-    steps: Array.from({ length: 25 }, (_, i) => ({ time: t0 + 65 * MINUTE + i * 5 * MINUTE, mmPerHour: 1 })), // 15:05-17:05
+    fetchedAt: t0,
+    steps: Array.from({ length: 24 }, (_, i) => ({ time: t0 + 5 * MINUTE + i * 5 * MINUTE, mmPerHour: i < 6 ? 0 : 1 })), // 15:05-17:00
   };
-  const now = t0 + 72 * MINUTE;
-  const tl = radarTimeline(past, nowcast, now);
-  it('keeps one hour of frames and continues with the nowcast after the newest frame', () => {
-    const kinds = tl.steps.map((s) => s.kind);
-    expect(kinds.filter((k) => k === 'past')).toHaveLength(13);
-    expect(hhmm(tl.steps[0].time, AMSTERDAM)).toBe('14:05');
-    expect(hhmm(tl.steps[tl.nowIndex].time, AMSTERDAM)).toBe('15:10');
-    expect(tl.steps[tl.nowIndex].kind).toBe('forecast');
+  const frames = Array.from({ length: 24 }, (_, i) => t0 + i * 5 * MINUTE); // 15:00-16:55
+  const now = t0 + 7 * MINUTE;
+  const steps = radarTimeline(nowcast, frames, now);
+  it('runs from "Nu" into the future only, with the nowcast at the location', () => {
+    expect(hhmm(steps[0].time, AMSTERDAM)).toBe('15:05'); // the 15:05 step is still running at 15:07
+    expect(steps).toHaveLength(24);
+    expect(steps[6].mmPerHour).toBe(1);
   });
-  it('forecast steps show the newest radar image', () => {
-    expect(frameAt(tl, 0)).toBe(t0 + 5 * MINUTE);
-    expect(frameAt(tl, tl.nowIndex + 3)).toBe(tl.newestFrame);
+  it('pairs every step with the image of the same moment', () => {
+    expect(steps[0].frame).toBe(t0 + 5 * MINUTE);
+    expect(steps[22].frame).toBe(t0 + 115 * MINUTE);
+    expect(steps[23].frame).toBeNull(); // 17:00 has no image yet
+    expect(frameAt(steps, 23)).toBe(t0 + 115 * MINUTE); // so the map keeps the last one
   });
-  it('without frames the nowcast alone is the timeline', () => {
-    const only = radarTimeline([], nowcast, now);
-    expect(only.nowIndex).toBe(0);
-    expect(only.newestFrame).toBeNull();
+  it('without a nowcast the images alone are the timeline', () => {
+    const only = radarTimeline(null, frames, now);
+    expect(only[0].frame).toBe(t0 + 5 * MINUTE);
+    expect(only.every((s) => s.mmPerHour === null)).toBe(true);
+  });
+  it('without images the chart still runs', () => {
+    const noImages = radarTimeline(nowcast, [], now);
+    expect(noImages).toHaveLength(24);
+    expect(frameAt(noImages, 3)).toBeNull();
   });
 });
 

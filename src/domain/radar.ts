@@ -1,38 +1,32 @@
 /**
- * The radar timeline (§2.2): the past hour of KNMI radar frames, then the Buienradar nowcast.
- * No free source publishes forecast radar images, so forecast steps have no frame of their
- * own: the map keeps the newest image and the chart carries the forecast (§6.3, option 3).
+ * The radar timeline (§2.2): from "Nu" to about +2 hours, one step per nowcast step, each
+ * paired with the Buienradar radar image for that moment. Chart and map come from the same
+ * nowcast, so the rain on the map reaches the location when the chart says it does.
  */
-import type { Nowcast, RadarStep, RainStep } from './types';
-import { MINUTE } from './time';
+import type { Nowcast, RadarStep } from './types';
 import { upcoming } from './rain';
 
-export const PAST_FRAMES = 12; // one hour of 5-minute frames before the newest one
+export const MAX_STEPS = 25;
+const MATCH_MS = 150_000; // a frame belongs to a step within 2.5 minutes
 
-export interface RadarTimeline {
-  steps: RadarStep[];
-  nowIndex: number;
-  newestFrame: number | null;
+/** `frames`: times of the available radar images, any order. */
+export function radarTimeline(nowcast: Nowcast | null, frames: number[], now: number): RadarStep[] {
+  const sorted = [...frames].sort((a, b) => a - b);
+  const nearest = (t: number): number | null => {
+    let best: number | null = null;
+    for (const f of sorted) if (Math.abs(f - t) <= MATCH_MS && (best === null || Math.abs(f - t) < Math.abs(best - t))) best = f;
+    return best;
+  };
+  if (nowcast) {
+    const ahead = upcoming(nowcast, now).slice(0, MAX_STEPS);
+    if (ahead.length) return ahead.map((s) => ({ time: s.time, mmPerHour: s.mmPerHour, frame: nearest(s.time) }));
+  }
+  // No nowcast (yet): the images alone, without a value at the location.
+  return sorted.filter((f) => f + 5 * 60_000 > now).slice(0, MAX_STEPS).map((f) => ({ time: f, mmPerHour: null, frame: f }));
 }
 
-/** `past`: radar frames with the rate at the location, any order. */
-export function radarTimeline(past: RainStep[], nowcast: Nowcast | null, now: number): RadarTimeline {
-  const frames = [...past].sort((a, b) => a.time - b.time).slice(-(PAST_FRAMES + 1));
-  const newestFrame = frames.length ? frames[frames.length - 1].time : null;
-  const steps: RadarStep[] = frames.map((f) => ({ time: f.time, mmPerHour: f.mmPerHour, frame: f.time, kind: 'past' }));
-  const ahead = nowcast ? upcoming(nowcast, now).filter((s) => newestFrame === null || s.time > newestFrame + MINUTE) : [];
-  for (const s of ahead) steps.push({ time: s.time, mmPerHour: s.mmPerHour, frame: null, kind: 'forecast' });
-  const firstForecast = steps.findIndex((s) => s.kind === 'forecast');
-  const nowIndex = firstForecast >= 0 ? firstForecast : Math.max(0, steps.length - 1);
-  return { steps, nowIndex, newestFrame };
-}
-
-/** The image to show at step `i`: its own frame, or the newest one for forecast steps. */
-export function frameAt(t: RadarTimeline, i: number): number | null {
-  return t.steps[i]?.frame ?? t.newestFrame;
-}
-
-/** WMS TIME value: "2026-10-27T13:50:00Z". */
-export function wmsTime(ms: number): string {
-  return new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z');
+/** The image for step `i`: its own, or the nearest earlier one so the map never goes blank. */
+export function frameAt(steps: RadarStep[], i: number): number | null {
+  for (let j = Math.min(i, steps.length - 1); j >= 0; j--) if (steps[j].frame !== null) return steps[j].frame;
+  return steps.find((s) => s.frame !== null)?.frame ?? null;
 }

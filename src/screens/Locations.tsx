@@ -13,7 +13,7 @@ import { useLocations, useStore } from '@/app/store';
 import { useNow } from '@/app/hooks';
 import { back } from '@/app/router';
 import { LocationCard } from '@/ui/LocationCard';
-import { IconGrip, IconPlus, IconRemove, IconSearch } from '@/ui/Icons';
+import { IconGrip, IconLocation, IconPlus, IconRemove, IconSearch } from '@/ui/Icons';
 
 const verticalOnly: Modifier = ({ transform }) => ({ ...transform, x: 0 });
 
@@ -46,6 +46,43 @@ function useSearch(query: string) {
     };
   }, [query]);
   return { results, state };
+}
+
+/**
+ * "Gebruik mijn locatie" when the GPS location is not in the list: asks for access again and
+ * goes straight to it once there is a fix; otherwise says where iOS keeps the setting.
+ */
+function UseMyLocation({ onFound }: { onFound(): void }) {
+  const [state, setState] = useState<'idle' | 'busy' | 'failed'>('idle');
+  const run = () => {
+    setState('busy');
+    const unsubscribe = useStore.subscribe((s) => {
+      if (!s.gps) return;
+      unsubscribe();
+      onFound();
+    });
+    void useStore
+      .getState()
+      .locate()
+      .then(() => {
+        if (useStore.getState().gps) return;
+        unsubscribe();
+        setState('failed');
+      });
+  };
+  return (
+    <>
+      <button type="button" className="result card" style={{ borderRadius: 18 }} onClick={run} disabled={state === 'busy'}>
+        <IconLocation />
+        <span>{state === 'busy' ? 'Locatie bepalen…' : 'Gebruik mijn locatie'}</span>
+      </button>
+      {state === 'failed' && (
+        <p className="footnote" style={{ margin: 0, padding: '0 4px' }}>
+          Geen toegang tot je locatie. Op de iPhone: Instellingen › Privacy en beveiliging › Locatievoorzieningen › Safari-websites › Bij gebruik van app.
+        </p>
+      )}
+    </>
+  );
 }
 
 function SortableCard({ location, editing, now, onOpen, onRemove }: { location: Location; editing: boolean; now: number; onOpen(): void; onRemove(): void }) {
@@ -84,7 +121,7 @@ export function Locations({ focus }: { focus?: boolean }) {
   const gps = useStore((s) => s.gps);
   const saved = useStore((s) => s.saved);
   const gpsEntry = useStore((s) => (gps ? s.entries[gps.id] : undefined));
-  const { addPlace, removePlace, movePlace, setActive, refresh } = useStore.getState();
+  const { addPlace, removePlace, movePlace, setActive, showMyLocation, refresh } = useStore.getState();
   const now = useNow();
   const [editing, setEditing] = useState(false);
   const [query, setQuery] = useState('');
@@ -175,7 +212,26 @@ export function Locations({ focus }: { focus?: boolean }) {
 
       {!searching && (
         <div className="loccards">
-          {gps && <LocationCard location={gps} entry={gpsEntry} now={now} onOpen={() => open(0)} editing={editing} />}
+          {!gps && !editing && (
+            <UseMyLocation
+              onFound={() => {
+                showMyLocation();
+                back();
+              }}
+            />
+          )}
+          {gps && (
+            <LocationCard
+              location={gps}
+              entry={gpsEntry}
+              now={now}
+              onOpen={() => {
+                showMyLocation(); // straight to it, with a fresh fix on the way
+                back();
+              }}
+              editing={editing}
+            />
+          )}
           <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[verticalOnly]} onDragEnd={onDragEnd}>
             <SortableContext items={saved.map((l) => l.id)} strategy={verticalListSortingStrategy}>
               {saved.map((l, i) => (

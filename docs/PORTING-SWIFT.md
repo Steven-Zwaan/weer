@@ -18,14 +18,14 @@ Drie dingen gaan (bijna) ongewijzigd mee:
 | `domain/weather.ts` | `WeatherCode.swift` | Tabel uit `weathercodes.json`; `heroDescription`: de nowcast wint als die nu nat is en de code droog. |
 | `domain/days.ts` | `Days.swift` | `tempBars`, `nextSunEvent`, `uvTile`, `tempChart` (punten midden in elke uurkolom, 1° marge). |
 | `domain/axis.ts` | `Axis.swift` | "Nu" plus echte halve uren, minimaal `ceil(n/6)` stappen ertussen. |
-| `domain/radar.ts` | `RadarTimeline.swift` | Afgelopen uur aan frames + nowcast na het nieuwste frame. |
+| `domain/radar.ts` | `RadarTimeline.swift` | Nu tot +2 uur; elke nowcast-stap krijgt het radarbeeld binnen 2,5 min. |
 | `domain/locations.ts` | `Places.swift` | NL, dan BE, dan de rest; ontdubbelen op id of < 0,01° afstand. |
 | `domain/time.ts` | — | Vervalt: `Calendar` + `TimeZone(identifier:)` doen dit. Houd `Europe/Amsterdam` voor Buienradar-tijden. |
 | `domain/format.ts` | `Format.swift` | Of `NumberFormatter`/`DateFormatter` met `nl_NL`. Windsectoren en UV-labels blijven eigen code. |
 | `api/*.ts` | `Sources/*.swift` | Zelfde URL's en parsing; de fixtures in `tests/fixtures/` zijn ook de Swift-testinvoer. |
 | `app/store.ts` | `WeatherStore` (`@Observable`) | Zelfde regels: cache eerst, niet opnieuw ophalen binnen 2 min, elke 5 min zolang zichtbaar. |
 | `app/platform.ts` | CoreLocation | `getCurrentPosition` → `CLLocationManager.requestLocation()`. |
-| `ui/RadarMap.tsx` | MapKit | OSM-tegels via `MKTileOverlay`; KNMI WMS-frames als tweede `MKTileOverlay` per tijdstip. |
+| `ui/RadarMap.tsx` | MapKit | OSM-tegels via `MKTileOverlay`; elk Buienradar-beeld als overlay over `RADAR_BOUNDS` (Web Mercator). |
 
 ## Wat native beter kan
 
