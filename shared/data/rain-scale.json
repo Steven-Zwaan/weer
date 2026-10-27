@@ -1,0 +1,17 @@
+{
+  "$comment": "Rain intensity scale shared by every rain chart (SPEC §4). mm per hour.",
+  "wet": 0.1,
+  "reference": 5,
+  "levels": [
+    { "id": "licht", "mmPerHour": 0.1, "text": "Lichte regen" },
+    { "id": "matig", "mmPerHour": 1, "text": "Matige regen" },
+    { "id": "zwaar", "mmPerHour": 5, "text": "Zware regen" }
+  ],
+  "dryText": "Droog",
+  "bar": { "dry": 3, "min": 5, "gap": 3 },
+  "miniBar": { "dry": 2, "min": 4, "gap": 1.5 },
+  "uncertainAfterStep": 8,
+  "fadePerStep": 0.045,
+  "fadeFloor": 0.3,
+  "staleAfterMinutes": 15
+}

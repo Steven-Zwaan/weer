@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Weer</title>
+  <!-- A cloud over three rain-chart bars. Source of every app icon (npm run icons). -->
+  <rect width="512" height="512" fill="#2B6FD6"/>
+  <g fill="#ffffff">
+    <rect x="118" y="206" width="276" height="96" rx="48"/>
+    <circle cx="208" cy="208" r="62"/>
+    <circle cx="300" cy="186" r="82"/>
+    <rect x="170" y="326" width="40" height="58" rx="20"/>
+    <rect x="236" y="326" width="40" height="98" rx="20"/>
+    <rect x="302" y="326" width="40" height="74" rx="20"/>
+  </g>
+</svg>

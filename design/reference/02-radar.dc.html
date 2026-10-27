@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Radar – Utrecht</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #EDF1F5; font-family: 'Inter', -apple-system, system-ui, sans-serif; color: #0E1621; display: flex; flex-direction: column; font-feature-settings: 'tnum' 1; overflow: hidden">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; height: 60px; padding: 8px 16px 0">
+    <a href="Main.dc.html" style="display: flex; align-items: center; gap: 4px; height: 44px; padding-right: 12px; font-size: 16px; font-weight: 500; color: {{accent}}">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"></path></svg>
+      Utrecht
+    </a>
+    <span style="font-size: 17px; font-weight: 600">Radar</span>
+    <span style="width: 80px"></span>
+  </div>
+
+  <div style="position: relative; height: 420px; margin: 0 12px; border-radius: 24px; overflow: hidden; background: #E6EBE3">
+    <svg role="img" aria-label="Neerslagradar rond Utrecht" width="366" height="420" viewBox="0 0 366 420">
+      <path d="M0 0h150c-10 30 -40 46 -70 50c-30 4 -50 30 -80 34z" fill="#CBDCEB"></path>
+      <path d="M260 0h106v70c-30 -6 -48 -24 -70 -26c-20 -2 -34 -22 -36 -44z" fill="#CBDCEB"></path>
+      <path d="M0 330c60 -14 110 6 160 -2c50 -8 90 -30 140 -26c26 2 46 10 66 18v10c-22 -8 -40 -14 -66 -16c-50 -4 -90 18 -140 26c-50 8 -100 -12 -160 2z" fill="#CBDCEB"></path>
+      <path d="M0 360c80 -8 120 14 190 6c60 -8 110 -26 176 -18v6c-66 -8 -116 10 -176 18c-70 8 -110 -14 -190 -6z" fill="#CBDCEB"></path>
+      <path d="M-10 230 C80 220 120 240 183 228 S300 200 380 214" stroke="#FFFFFF" stroke-width="3" fill="none"></path>
+      <path d="M170 -10 C176 80 186 150 183 228 S170 360 190 430" stroke="#FFFFFF" stroke-width="3" fill="none"></path>
+      <path d="M40 420 C100 340 140 280 183 228 S280 110 340 -10" stroke="#FFFFFF" stroke-width="2" fill="none"></path>
+      <circle cx="183" cy="228" r="26" fill="#DCE2D8"></circle>
+      <circle cx="300" cy="150" r="16" fill="#DCE2D8"></circle>
+      <circle cx="232" cy="96" r="13" fill="#DCE2D8"></circle>
+      <circle cx="60" cy="262" r="12" fill="#DCE2D8"></circle>
+      <circle cx="160" cy="292" r="11" fill="#DCE2D8"></circle>
+
+      <g transform="translate({{dx}} {{dy}})" opacity="0.92">
+        <ellipse cx="160" cy="240" rx="120" ry="78" fill="#BCD5F6" opacity="0.75"></ellipse>
+        <ellipse cx="172" cy="232" rx="78" ry="50" fill="#7EAEEE" opacity="0.85"></ellipse>
+        <ellipse cx="186" cy="226" rx="38" ry="26" fill="#3F7BDB"></ellipse>
+        <ellipse cx="192" cy="222" rx="14" ry="10" fill="#1E4FA8"></ellipse>
+        <ellipse cx="-60" cy="300" rx="90" ry="54" fill="#BCD5F6" opacity="0.75"></ellipse>
+        <ellipse cx="-50" cy="296" rx="44" ry="26" fill="#7EAEEE" opacity="0.85"></ellipse>
+        <ellipse cx="-160" cy="210" rx="70" ry="40" fill="#BCD5F6" opacity="0.7"></ellipse>
+      </g>
+
+      <text x="196" y="262" font-size="12" font-weight="600" fill="#2F3A47" font-family="Inter, system-ui, sans-serif">Utrecht</text>
+      <text x="318" y="154" font-size="11" fill="#3F4A57" font-family="Inter, system-ui, sans-serif">Amersfoort</text>
+      <text x="246" y="100" font-size="11" fill="#3F4A57" font-family="Inter, system-ui, sans-serif">Hilversum</text>
+      <text x="20" y="284" font-size="11" fill="#3F4A57" font-family="Inter, system-ui, sans-serif">Gouda</text>
+      <text x="174" y="312" font-size="11" fill="#3F4A57" font-family="Inter, system-ui, sans-serif">Nieuwegein</text>
+
+      <circle cx="183" cy="228" r="18" fill="{{accent}}" opacity="0.18"></circle>
+      <circle cx="183" cy="228" r="7" fill="{{accent}}" stroke="#FFFFFF" stroke-width="3"></circle>
+    </svg>
+
+    <div style="position: absolute; left: 12px; top: 12px; display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.94)">
+      <span style="font-size: 26px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1">{{timeLabel}}</span>
+      <span style="font-size: 13px; color: #566273">{{offsetLabel}}</span>
+    </div>
+    <div style="position: absolute; right: 12px; top: 12px; padding: 8px 12px; border-radius: 14px; background: rgba(255,255,255,0.94); font-size: 13px; font-weight: 600; color: {{statusColor}}">{{status}}</div>
+    <div style="position: absolute; left: 12px; bottom: 12px; display: flex; gap: 10px; align-items: center; padding: 7px 12px; border-radius: 14px; background: rgba(255,255,255,0.94); font-size: 12px; color: #3F4A57">
+      <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #BCD5F6"></span>licht</span>
+      <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #7EAEEE"></span>matig</span>
+      <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #3F7BDB"></span>zwaar</span>
+      <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #1E4FA8"></span>extreem</span>
+    </div>
+  </div>
+
+  <div style="margin: 12px 12px 0; background: #FFFFFF; border-radius: 24px; padding: 16px 18px 14px; display: flex; flex-direction: column; gap: 12px">
+    <div style="position: relative; height: 84px">
+      <div style="position: absolute; left: 0; right: 0; bottom: 72px; border-top: 1px dashed #D5DDE7"></div>
+      <div style="position: absolute; left: 0; right: 0; bottom: 32px; border-top: 1px dashed #D5DDE7"></div>
+      <div style="position: absolute; left: 0; right: 0; bottom: 10px; border-top: 1px dashed #D5DDE7"></div>
+      <span style="position: absolute; right: 0; bottom: 74px; font-size: 11px; font-weight: 600; color: #3F4A57">zwaar</span>
+      <span style="position: absolute; right: 0; bottom: 34px; font-size: 11px; font-weight: 600; color: #3F4A57">matig</span>
+      <span style="position: absolute; right: 0; bottom: 12px; font-size: 11px; font-weight: 600; color: #3F4A57">licht</span>
+      <div onPointerDown="{{scrubDown}}" onPointerMove="{{scrubMove}}" onPointerUp="{{scrubUp}}" onPointerCancel="{{scrubUp}}" style="position: absolute; left: 0; right: 40px; top: 0; bottom: 0; display: flex; align-items: flex-end; gap: 3px; touch-action: none; cursor: ew-resize">
+        <sc-for list="{{bars}}" as="bar" hint-placeholder-count="25">
+          <div style="flex: 1; height: {{bar.h}}px; opacity: {{bar.op}}; background: {{bar.bg}}; border-radius: 3px 3px 1px 1px; pointer-events: none"></div>
+        </sc-for>
+      </div>
+      <div style="position: absolute; left: calc((100% - 40px) * {{cursorFrac}}); top: 0; bottom: 0; border-left: 2px solid #0E1621; pointer-events: none"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding-right: 40px; font-size: 12px; color: #566273">
+      <span>Nu</span><span>15:00</span><span>15:30</span><span>16:00</span><span>16:30</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px">
+      <button type="button" aria-label="{{playLabel}}" onClick="{{togglePlay}}" style="flex: 0 0 44px; height: 44px; border: none; border-radius: 22px; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <sc-if value="{{playing}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1.5"></rect><rect x="14" y="4" width="5" height="16" rx="1.5"></rect></svg></sc-if>
+        <sc-if value="{{paused}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"></path></svg></sc-if>
+      </button>
+      <label for="radar-time" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Tijdstip radarbeeld</label>
+      <input id="radar-time" type="range" min="0" max="24" step="1" value="{{step}}" onChange="{{scrub}}" style="flex: 1; accent-color: {{accent}}; height: 44px; margin: 0">
+    </div>
+  </div>
+
+  <div style="padding: 12px 20px 0; font-size: 12px; color: #566273; line-height: 1.5">Radar en nowcast: KNMI · Kaart: OpenStreetMap-bijdragers. Na 40 minuten is de verwachting minder zeker.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B6FD6","options":["#2B6FD6","#1F8A8A","#5B5BD6","#0E1621"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 0, playing: false };
+    this.timer = null;
+  }
+  componentWillUnmount() {
+    if (this.timer) clearInterval(this.timer);
+  }
+  renderVals() {
+    const accent = this.props.accent ?? '#2B6FD6';
+    const step = this.state.step;
+    const rain = [0,0,0,0,0,0.2,0.8,1.6,2.4,3.1,2.2,1.4,0.9,0.5,0.3,0.2,0.1,0,0,0.3,0.6,0.4,0.2,0,0];
+    const H = 72;
+    const bars = rain.map((v, i) => ({
+      h: v <= 0 ? 3 : Math.round(Math.max(5, Math.min(H, Math.sqrt(v / 5) * H))),
+      op: i === step ? '1' : (i < step ? '0.35' : '0.6'),
+      bg: i === step ? '#0E1621' : (v <= 0 ? '#D5DDE7' : accent)
+    }));
+    const total = 14 * 60 + 30 + step * 5;
+    const hh = String(Math.floor(total / 60)).padStart(2, '0');
+    const mm = String(total % 60).padStart(2, '0');
+    const v = rain[step];
+    let status = 'Droog';
+    if (v > 0 && v < 1) status = 'Lichte regen';
+    else if (v >= 1 && v < 5) status = 'Matige regen';
+    else if (v >= 5) status = 'Zware regen';
+    const pick = (e) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      const i = Math.max(0, Math.min(24, Math.floor((e.clientX - r.left) / r.width * 25)));
+      if (i !== this.state.step) this.setState({ step: i });
+    };
+    const scrubDown = (e) => {
+      if (this.timer) { clearInterval(this.timer); this.timer = null; }
+      if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId);
+      this.dragging = true;
+      if (this.state.playing) this.setState({ playing: false });
+      pick(e);
+    };
+    const scrubMove = (e) => { if (this.dragging) pick(e); };
+    const scrubUp = () => { this.dragging = false; };
+    const togglePlay = () => {
+      if (this.state.playing) {
+        clearInterval(this.timer); this.timer = null;
+        this.setState({ playing: false });
+      } else {
+        this.timer = setInterval(() => this.setState({ step: (this.state.step + 1) % 25 }), 450);
+        this.setState({ playing: true });
+      }
+    };
+    const scrub = (e) => this.setState({ step: Number(e.target.value) });
+    return {
+      accent, bars, step,
+      dx: (step - 9) * 7, dy: (9 - step) * 2,
+      timeLabel: hh + ':' + mm,
+      offsetLabel: step === 0 ? 'Nu' : '+' + step * 5 + ' min',
+      status: v > 0 ? status + ' · ' + v.toFixed(1).replace('.', ',') + ' mm/u' : status,
+      statusColor: v > 0 ? accent : '#566273',
+      playing: this.state.playing, paused: !this.state.playing,
+      playLabel: this.state.playing ? 'Pauzeer' : 'Afspelen',
+      togglePlay, scrub, scrubDown, scrubMove, scrubUp,
+      cursorFrac: ((step + 0.5) / 25).toFixed(4)
+    };
+  }
+}
+</script>
+</body>
+</html>

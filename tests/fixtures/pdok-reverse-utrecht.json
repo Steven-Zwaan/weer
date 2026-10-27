@@ -1,0 +1,13 @@
+{
+  "response" : {
+    "numFound" : 1,
+    "start" : 0,
+    "maxScore" : 12.287342,
+    "numFoundExact" : true,
+    "docs" : [ {
+      "woonplaatsnaam" : "Utrecht",
+      "provincienaam" : "Utrecht",
+      "gemeentenaam" : "Utrecht"
+    } ]
+  }
+}

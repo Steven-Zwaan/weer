@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Vandaag – Utrecht</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1640px; box-sizing: border-box; padding: 16px 16px 40px; background: #EDF1F5; font-family: 'Inter', -apple-system, system-ui, sans-serif; color: #0E1621; display: flex; flex-direction: column; gap: 14px; font-feature-settings: 'tnum' 1">
+
+  <div style="display: flex; justify-content: space-between; align-items: center; height: 44px">
+    <a href="Locations.dc.html" aria-label="Locaties" style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px 0 10px; border-radius: 22px; background: #FFFFFF; font-size: 15px; font-weight: 500">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"></path><circle cx="4" cy="6" r="0.8"></circle><circle cx="4" cy="12" r="0.8"></circle><circle cx="4" cy="18" r="0.8"></circle></svg>
+      Locaties
+    </a>
+    <span style="font-size: 13px; color: #566273">Bijgewerkt 14:30</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; padding: 18px 0 10px; gap: 2px">
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">
+      Utrecht
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="{{accent}}"><path d="M21 3 3 10.5l7.5 3L13.5 21z"></path></svg>
+    </div>
+    <div style="font-size: 112px; font-weight: 200; line-height: 1; letter-spacing: -0.05em; margin: 4px 0 0 28px">12°</div>
+    <div style="font-size: 19px; font-weight: 500; margin-top: 6px">Lichte buien</div>
+    <div style="font-size: 15px; color: #566273; margin-top: 2px">H 14° · L 7° · Voelt als 9°</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; background: #FFFFFF; border-radius: 24px; padding: 18px 18px 16px">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 3px; min-height: 44px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #566273">{{rainEyebrow}}</span>
+        <span style="font-size: 18px; font-weight: 600; letter-spacing: -0.01em">{{rainHeadline}}</span>
+      </div>
+      <a href="Radar.dc.html" style="display: flex; align-items: center; gap: 4px; flex-shrink: 0; height: 44px; margin: -12px -6px 0 0; padding: 0 6px 0 10px; font-size: 14px; font-weight: 600; color: {{accent}}">
+        Radar
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg>
+      </a>
+    </div>
+
+    <div style="position: relative; height: 104px; padding-top: 8px">
+      <div style="position: absolute; left: 0; right: 0; bottom: 96px; border-top: 1px dashed #D5DDE7"></div>
+      <div style="position: absolute; left: 0; right: 0; bottom: 43px; border-top: 1px dashed #D5DDE7"></div>
+      <div style="position: absolute; left: 0; right: 0; bottom: 14px; border-top: 1px dashed #D5DDE7"></div>
+      <span style="position: absolute; right: 0; bottom: 98px; font-size: 11px; color: #566273">zwaar</span>
+      <span style="position: absolute; right: 0; bottom: 45px; font-size: 11px; color: #566273">matig</span>
+      <span style="position: absolute; right: 0; bottom: 16px; font-size: 11px; color: #566273">licht</span>
+      <div style="position: absolute; left: calc((100% - 40px) * 0.34); top: 0; bottom: 0; border-left: 1.5px dotted #8A96A6"></div>
+      <span style="position: absolute; left: calc((100% - 40px) * 0.34 + 6px); top: -4px; font-size: 11px; color: #566273">minder zeker →</span>
+      <div onPointerDown="{{scrubDown}}" onPointerMove="{{scrubMove}}" onPointerUp="{{scrubUp}}" onPointerCancel="{{scrubUp}}" style="position: absolute; left: 0; right: 40px; bottom: 0; top: 0; display: flex; align-items: flex-end; gap: 3px; touch-action: none; cursor: ew-resize">
+        <sc-for list="{{bars}}" as="bar" hint-placeholder-count="25">
+          <div style="flex: 1; height: {{bar.h}}px; opacity: {{bar.op}}; background: {{bar.bg}}; border-radius: 3px 3px 1px 1px; pointer-events: none"></div>
+        </sc-for>
+      </div>
+      <sc-if value="{{scrubbing}}" hint-placeholder-val="{{false}}">
+        <div style="position: absolute; left: calc((100% - 40px) * {{cursorFrac}}); top: 0; bottom: 0; border-left: 2px solid #0E1621; pointer-events: none"></div>
+      </sc-if>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; padding-right: 40px; font-size: 12px; color: #566273">
+      <span style="font-weight: 600; color: #0E1621">Nu</span><span>15:00</span><span>15:30</span><span>16:00</span><span>16:30</span>
+    </div>
+    <div style="font-size: 12px; color: #566273; border-top: 1px solid #EEF1F5; padding-top: 10px">Sleep over de grafiek voor details · Bron: Buienradar en KNMI</div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 24px; padding: 16px 0 14px">
+    <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #566273; padding: 0 18px 12px; border-bottom: 1px solid #EEF1F5">Per uur</div>
+    <div style="display: flex; gap: 4px; overflow-x: auto; padding: 14px 10px 2px">
+      <sc-for list="{{hours}}" as="h" hint-placeholder-count="10">
+        <div style="flex: 0 0 52px; display: flex; flex-direction: column; align-items: center; gap: 8px">
+          <span style="font-size: 14px; font-weight: {{h.weight}}">{{h.t}}</span>
+          <div style="height: 26px; display: flex; align-items: center">
+            <sc-if value="{{h.isRain}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 8.1 3.5 3.5 0 0 0 7 15z"></path><path d="M9 18l-1 2.5M13 18l-1 2.5M17 18l-1 2.5"></path></svg></sc-if>
+            <sc-if value="{{h.isCloud}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6B7787" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11.1 3.5 3.5 0 0 0 7 18z"></path></svg></sc-if>
+            <sc-if value="{{h.isMoon}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6B7787" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"></path></svg></sc-if>
+          </div>
+          <span style="font-size: 16px; font-weight: 600">{{h.temp}}°</span>
+          <span style="font-size: 11px; font-weight: 600; color: {{accent}}; height: 14px">{{h.mm}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 24px; padding: 16px 0 6px">
+    <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #566273; padding: 0 18px 12px">Komende 10 dagen</div>
+    <sc-for list="{{days}}" as="d" hint-placeholder-count="10">
+      <a href="DayDetail.dc.html" style="display: grid; grid-template-columns: 76px 40px 36px 1fr 36px 14px; align-items: center; gap: 6px; min-height: 52px; padding: 0 14px 0 18px; border-top: 1px solid #EEF1F5">
+        <span style="font-size: 16px; font-weight: {{d.weight}}">{{d.name}}</span>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px">
+          <sc-if value="{{d.isRain}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 8.1 3.5 3.5 0 0 0 7 15z"></path><path d="M9 18l-1 2.5M13 18l-1 2.5M17 18l-1 2.5"></path></svg></sc-if>
+          <sc-if value="{{d.isCloud}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B7787" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11.1 3.5 3.5 0 0 0 7 18z"></path></svg></sc-if>
+          <sc-if value="{{d.isSun}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D97B1F" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2.5v2M12 19.5v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2.5 12h2M19.5 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></sc-if>
+          <sc-if value="{{d.isSunCloud}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path stroke="#D97B1F" d="M8 2.5V4M3 7.5h1.5M4.5 4l1 1M12.4 6.6l-1 1M11.6 9.6A4 4 0 0 0 4.5 9.8"></path><path stroke="#6B7787" d="M9 20h8a3.5 3.5 0 0 0 .4-6.98A5 5 0 0 0 8 13.6 3.2 3.2 0 0 0 9 20z"></path></svg></sc-if>
+        </div>
+        <span style="font-size: 12px; font-weight: 600; color: {{accent}}">{{d.pct}}</span>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 16px">
+          <span style="width: 26px; text-align: right; color: #566273">{{d.lo}}°</span>
+          <div style="position: relative; flex: 1; height: 5px; border-radius: 3px; background: #E6EBF1">
+            <div style="position: absolute; top: 0; bottom: 0; left: {{d.left}}%; width: {{d.width}}%; border-radius: 3px; background: {{d.barColor}}"></div>
+          </div>
+        </div>
+        <span style="font-size: 16px; font-weight: 600; text-align: right">{{d.hi}}°</span>
+        <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8A96A6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg>
+      </a>
+    </sc-for>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-height: 104px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #566273">Wind</span>
+      <span style="font-size: 26px; font-weight: 500; letter-spacing: -0.02em">18 km/u</span>
+      <span style="font-size: 13px; color: #566273">Zuidwest · stoten tot 41 km/u</span>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-height: 104px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #566273">Luchtvochtigheid</span>
+      <span style="font-size: 26px; font-weight: 500; letter-spacing: -0.02em">86%</span>
+      <span style="font-size: 13px; color: #566273">Dauwpunt 10°</span>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-height: 104px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #566273">UV-index</span>
+      <span style="font-size: 26px; font-weight: 500; letter-spacing: -0.02em">1</span>
+      <span style="font-size: 13px; color: #566273">Laag, de hele dag</span>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-height: 104px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #566273">Zon</span>
+      <span style="font-size: 26px; font-weight: 500; letter-spacing: -0.02em">17:18</span>
+      <span style="font-size: 13px; color: #566273">Onder · op om 07:22</span>
+    </div>
+  </div>
+
+  <div style="font-size: 12px; color: #566273; text-align: center; line-height: 1.5; padding: 4px 12px">Neerslag: Buienradar, KNMI · Verwachting: KNMI Harmonie via Open-Meteo</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B6FD6","options":["#2B6FD6","#1F8A8A","#5B5BD6","#0E1621"]},"$preview":{"width":390,"height":1640}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { idx: null };
+  }
+  renderVals() {
+    const accent = this.props.accent ?? '#2B6FD6';
+    const rain = [0,0,0,0,0,0.2,0.8,1.6,2.4,3.1,2.2,1.4,0.9,0.5,0.3,0.2,0.1,0,0,0.3,0.6,0.4,0.2,0,0];
+    const H = 96;
+    const idx = this.state.idx;
+    const scrubbing = idx !== null;
+    const bars = rain.map((v, i) => ({
+      h: v <= 0 ? 3 : Math.round(Math.max(5, Math.min(H, Math.sqrt(v / 5) * H))),
+      op: scrubbing ? (i === idx ? '1' : '0.4') : (i <= 8 ? 1 : Math.max(0.3, 1 - (i - 8) * 0.045)).toFixed(2),
+      bg: scrubbing && i === idx ? '#0E1621' : (v <= 0 ? '#D5DDE7' : accent)
+    }));
+    const pick = (e) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      const i = Math.max(0, Math.min(24, Math.floor((e.clientX - r.left) / r.width * 25)));
+      if (i !== this.state.idx) this.setState({ idx: i });
+    };
+    const scrubDown = (e) => { if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId); this.dragging = true; pick(e); };
+    const scrubMove = (e) => { if (this.dragging) pick(e); };
+    const scrubUp = () => { this.dragging = false; this.setState({ idx: null }); };
+    const level = (v) => v <= 0 ? 'Droog' : v < 1 ? 'Lichte regen' : v < 5 ? 'Matige regen' : 'Zware regen';
+    const fmt = (v) => v.toFixed(1).replace('.', ',');
+    let rainEyebrow = 'Neerslag · komende 2 uur';
+    let rainHeadline = 'Regen vanaf 14:55, tot ca. 15:50';
+    if (scrubbing) {
+      const t = 14 * 60 + 30 + idx * 5;
+      rainEyebrow = (idx === 0 ? 'Nu' : String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0') + ' · over ' + idx * 5 + ' min');
+      rainHeadline = level(rain[idx]) + (rain[idx] > 0 ? ' · ' + fmt(rain[idx]) + ' mm/u' : '');
+    }
+    const icon = (ic) => ({ isRain: ic === 'rain', isCloud: ic === 'cloud', isMoon: ic === 'moon', isSun: ic === 'sun', isSunCloud: ic === 'suncloud' });
+    const hourData = [
+      ['Nu','rain',12,'0,8'],['15','rain',12,'2,1'],['16','rain',11,'0,4'],['17','cloud',10,''],['18','cloud',9,''],
+      ['19','moon',9,''],['20','moon',8,''],['21','cloud',8,''],['22','cloud',7,''],['23','moon',7,'']
+    ];
+    const hours = hourData.map(([t, ic, temp, mm], i) => ({ t, temp, mm: mm ? mm + ' mm' : '', weight: i === 0 ? 700 : 500, ...icon(ic) }));
+    const dayData = [
+      ['Vandaag','rain',7,14,70],['Wo','suncloud',6,12,20],['Do','rain',6,14,80],['Vr','cloud',8,13,40],['Za','sun',5,11,10],
+      ['Zo','suncloud',4,10,15],['Ma','rain',6,12,60],['Di','rain',7,13,65],['Wo','cloud',5,11,30],['Do','sun',4,10,10]
+    ];
+    const min = 4, max = 14, span = max - min;
+    const days = dayData.map(([name, ic, lo, hi, p], i) => ({
+      name, lo, hi,
+      pct: p >= 30 ? p + '%' : '',
+      weight: i === 0 ? 600 : 500,
+      left: ((lo - min) / span * 100).toFixed(1),
+      width: ((hi - lo) / span * 100).toFixed(1),
+      barColor: hi >= 13 ? '#E39A4A' : '#7FA6D9',
+      ...icon(ic)
+    }));
+    return {
+      accent, bars, hours, days,
+      scrubbing, cursorFrac: scrubbing ? ((idx + 0.5) / 25).toFixed(4) : '0',
+      rainEyebrow, rainHeadline, scrubDown, scrubMove, scrubUp
+    };
+  }
+}
+</script>
+</body>
+</html>

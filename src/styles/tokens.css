@@ -1,0 +1,42 @@
+/* Design tokens (SPEC §3), defined once. Light only in v1; a dark set can override these later. */
+:root {
+  --bg: #edf1f5; /* schermachtergrond */
+  --surface: #ffffff; /* kaarten */
+  --ink: #0e1621; /* hoofdtekst, cursor */
+  --ink-2: #3f4a57; /* grafieklabels op Radar en Dagdetail, kaartlabels */
+  --muted: #566273; /* secundaire tekst (>= 4,5:1 op bg en surface) */
+  --line: #eef1f5; /* scheidingslijnen in kaarten */
+  --grid: #d5dde7; /* gestippelde intensiteitslijnen, droog-balken */
+  --track: #e6ebf1; /* spoor van temperatuurbalk */
+  --uncertain: #8a96a6; /* "minder zeker"-lijn, chevrons */
+  --field: #dfe5ec; /* zoekveld */
+  --info-idle: #f3f5f8; /* infobalk Dagdetail, hint */
+  --info-active: #e4ecf8; /* infobalk Dagdetail, tijdens slepen */
+  --accent: #2b6fd6; /* regen, links, actief */
+  --sun: #d97b1f; /* zon-iconen */
+  --cloud: #6b7787; /* wolk/maan-iconen */
+  --warm: #e39a4a; /* temperatuurbalk warme dag */
+  --cool: #7fa6d9; /* temperatuurbalk koele dag */
+  --danger: #d2433a; /* verwijderen */
+  --radar-1: #bcd5f6; /* licht */
+  --radar-2: #7eaeee; /* matig */
+  --radar-3: #3f7bdb; /* zwaar */
+  --radar-4: #1e4fa8; /* extreem */
+
+  --radius-card: 24px;
+  --radius-tile: 20px;
+  --radius-chip: 18px;
+  --gap: 14px;
+  --pad-screen: 16px;
+  --pad-card: 18px;
+  --gutter: 40px; /* label column right of every rain chart */
+
+  --font: -apple-system, BlinkMacSystemFont, 'Inter Variable', 'Inter', system-ui, sans-serif;
+
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+
+  color-scheme: light;
+}

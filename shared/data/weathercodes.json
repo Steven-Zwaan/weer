@@ -1,0 +1,33 @@
+{
+  "$comment": "WMO weather code -> condition and Dutch text (SPEC §7). 'night' overrides 'text' when is_day = 0.",
+  "codes": {
+    "0": { "condition": "clear", "text": "Zonnig", "night": "Helder" },
+    "1": { "condition": "clear", "text": "Overwegend zonnig", "night": "Overwegend helder" },
+    "2": { "condition": "partly", "text": "Half bewolkt" },
+    "3": { "condition": "cloudy", "text": "Bewolkt" },
+    "45": { "condition": "fog", "text": "Mist" },
+    "48": { "condition": "fog", "text": "Mist" },
+    "51": { "condition": "drizzle", "text": "Motregen" },
+    "53": { "condition": "drizzle", "text": "Motregen" },
+    "55": { "condition": "drizzle", "text": "Motregen" },
+    "56": { "condition": "drizzle", "text": "IJzel" },
+    "57": { "condition": "drizzle", "text": "IJzel" },
+    "61": { "condition": "rain", "text": "Lichte regen" },
+    "63": { "condition": "rain", "text": "Regen" },
+    "65": { "condition": "rain", "text": "Zware regen" },
+    "66": { "condition": "rain", "text": "IJzel" },
+    "67": { "condition": "rain", "text": "IJzel" },
+    "71": { "condition": "snow", "text": "Lichte sneeuw" },
+    "73": { "condition": "snow", "text": "Sneeuw" },
+    "75": { "condition": "snow", "text": "Zware sneeuw" },
+    "77": { "condition": "snow", "text": "Sneeuwkorrels" },
+    "80": { "condition": "showers", "text": "Lichte buien" },
+    "81": { "condition": "showers", "text": "Buien" },
+    "82": { "condition": "showers", "text": "Zware buien" },
+    "85": { "condition": "snow", "text": "Sneeuwbuien" },
+    "86": { "condition": "snow", "text": "Sneeuwbuien" },
+    "95": { "condition": "thunder", "text": "Onweer" },
+    "96": { "condition": "thunder", "text": "Onweer met hagel" },
+    "99": { "condition": "thunder", "text": "Onweer met hagel" }
+  }
+}
